@@ -1,6 +1,7 @@
 Flask==1.0.2
 Flask-Cors==3.0.6
 twilio==6.16.4
+phonenumbers==8.9.14
 PyJWT==1.6.4
 pysocks==1.6.8
 pytz==2018.5
