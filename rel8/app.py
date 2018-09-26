@@ -5,7 +5,7 @@ from flask import abort, flash, Flask, jsonify, render_template
 from flask import request, session, url_for
 from flask_bcrypt import Bcrypt
 import models
-from models import User
+from models.user import User
 import os
 import phonenumbers
 from twilio.twiml.messaging_response import MessagingResponse
