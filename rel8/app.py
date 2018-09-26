@@ -3,6 +3,7 @@
 import binascii
 from flask import abort, flash, Flask, jsonify, render_template
 from flask import request, session, url_for
+from flask_bcrypt import Bcrypt
 import models
 from models import User
 import os
@@ -16,6 +17,8 @@ TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.secret_key = os.getenv('SECRET_KEY')
+
+bcrypt = Bcrypt(app)
 
 SITE_URL = os.getenv('SITE_URL')
 
@@ -37,10 +40,7 @@ def index():
 
 @app.route('/register/', methods=['GET'])
 def register():
-    if not session.get('logged_in', None):
-        return render_template('register.html')
-    else:
-        return render_template('register.html')
+    return render_template('register.html')
 
 
 @app.route('/login', methods=['POST'])
@@ -56,8 +56,10 @@ def login():
         error = 'No account'
     elif user and user.access_code == access_code:
         session['logged_in'] = True
+        session['phone-number'] = phone_number_formatted
+        session['user-id'] = user.id
         flash('Successfully logged in')
-        return render_template('variables.html')
+        return render_template('password.html')
     else:
         error = 'Wrong access code'
     return render_template('register.html', error=error)
@@ -67,6 +69,19 @@ def login():
 def logout():
     session['logged_in'] = False
     return index()
+
+
+@app.route('/password', methods=['GET', 'POST'])
+def password(user=None):
+    error = None
+    users = models.storage.all(User)
+    user = users.get(session['phone-number'], None)
+    pw_raw = request.form['password']
+    user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
+    user.save()
+    flash('Updated password')
+
+    return render_template('password.html', error=error)
 
 
 @app.route('/sms/<test>', methods=['POST'])

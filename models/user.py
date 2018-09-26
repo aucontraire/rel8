@@ -2,7 +2,6 @@
 """User module"""
 from datetime import datetime
 from models.base_model import Base, BaseModel
-from os import getenv
 from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
@@ -17,3 +16,4 @@ class User(BaseModel, Base):
     username = Column(String(60), nullable=False)
     access_code = Column(String(60), nullable=False)
     phone_number = Column(String(60), nullable=False)
+    password = Column(String(128), nullable=True)
