@@ -45,7 +45,6 @@ def index():
         else:
             return render_template('variables.html')
     else:
-        print('not logged in')
         if request.method == 'POST' and form.validate_on_submit():
             phone_number = phonenumbers.parse(request.form['phone_number'], "US")
             phone_number_formatted = phonenumbers.format_number(
@@ -54,8 +53,10 @@ def index():
             for user in users.values():
                 if user.phone_number == phone_number_formatted:
                     if bcrypt.check_password_hash(user.password, request.form['password']):
+                        session['logged_in'] = True
+                        session['user-id'] = user.id
                         return render_template('variables.html')
-            error = 'Did not match users'
+            error = 'Wrong password'
     return render_template('index.html', form=form, error=error)
 
 
