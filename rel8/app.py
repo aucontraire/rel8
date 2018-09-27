@@ -41,13 +41,28 @@ def index():
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
+    error = None
     form = RegistrationForm()
-    if form.validate_on_submit():
-        session['logged_in'] = True
-        return redirect(url_for('password'))
+    if not session.get('user-id', None):
+        error = 'Register through text'
+    elif form.validate_on_submit():
+        access_code = request.form['access_code']
+        phone_number = phonenumbers.parse(request.form['phone_number'], "US")
+        phone_number_formatted = phonenumbers.format_number(
+            phone_number, phonenumbers.PhoneNumberFormat.E164)
+        user = models.storage.get(User, session['user-id'])
+        if not user:
+            error = 'No account'
+        elif user and user.access_code == access_code:
+            session['logged_in'] = True
+            session['phone-number'] = phone_number_formatted
+            session['user-id'] = user.id
+            return redirect(url_for('password'))
+        else:
+            error = 'Wrong access code'
     else:
-        print('not validated')
-    return render_template('register.html', form=form)
+        error = 'Invalid submission'
+    return render_template('register.html', form=form, error=error)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -57,7 +72,6 @@ def login():
     phone_number = phonenumbers.parse(request.form['phone-number'], "US")
     phone_number_formatted = phonenumbers.format_number(
         phone_number, phonenumbers.PhoneNumberFormat.E164)
-
     user = models.storage.get(User, session['user-id'])
     if not user:
         error = 'No account'
@@ -74,6 +88,7 @@ def login():
 @app.route('/logout')
 def logout():
     session['logged_in'] = False
+    session.pop('user-id')
     return redirect(url_for('index'))
 
 
