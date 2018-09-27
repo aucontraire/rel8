@@ -1,9 +1,11 @@
 Flask==1.0.2
 Flask-Bcrypt==0.7.1
 Flask-Cors==3.0.6
+flask-wtf==0.14.2
 twilio==6.16.4
 phonenumbers==8.9.14
 PyJWT==1.6.4
 pysocks==1.6.8
 pytz==2018.5
 SQLAlchemy==1.2.10
+WTForms==2.2.1

@@ -2,12 +2,13 @@
 """ReL8 Flask app"""
 import binascii
 from flask import abort, flash, Flask, jsonify, render_template
-from flask import request, session, url_for
+from flask import redirect, request, session, url_for
 from flask_bcrypt import Bcrypt
 import models
 from models.user import User
 import os
 import phonenumbers
+from rel8.forms import RegistrationForm
 from twilio.twiml.messaging_response import MessagingResponse
 
 
@@ -38,12 +39,19 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/register/', methods=['GET'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
-    return render_template('register.html')
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        print('validated register!')
+        session['logged_in'] = True
+        return redirect(url_for('password'))
+    else:
+        print('not validated')
+    return render_template('register.html', form=form)
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     access_code = request.form['access-code']
@@ -73,12 +81,13 @@ def logout():
 @app.route('/password', methods=['GET', 'POST'])
 def password(user=None):
     error = None
-    users = models.storage.all(User)
-    user = users.get(session['phone-number'], None)
-    pw_raw = request.form['password']
-    user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
-    user.save()
-    flash('Updated password')
+    if request.method == 'POST':
+        users = models.storage.all(User)
+        user = users.get(session['phone-number'], None)
+        pw_raw = request.form['password']
+        user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
+        user.save()
+        flash('Updated password')
 
     return render_template('password.html', error=error)
 

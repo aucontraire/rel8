@@ -15,17 +15,34 @@
       <a href='/logout'>Logout</a>
     </form>
   {% else %}
-    <form class="form-signin" action="/login" method="POST">
+    <form class="form-signin" action="" method="POST">
+      {{ form.hidden_tag() }}
       <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
       <h1 class="h3 mb-3 font-weight-normal">Please register</h1>
       {% if error %}
         <div class="alert alert-danger" role="alert">{{ error }}</div>
       {% endif %}
-      <label for="phone-number" class="sr-only">Phone number</label>
-      <input type="text" class="form-control" name="phone-number" id="phone-number" placeholder="phone number">
-      <label for="access-code" class="sr-only">Access code</label>
-      <input type="text" class="form-control" name="access-code" id="access-code" placeholder="access code" value="">
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+
+      {{ form.phone_number.label(class="form-control-label") }}
+      {% if form.phone_number.errors %}
+        {% for error in form.phone_number.errors %}
+          <span>{{ error }}</span>
+        {% endfor %}
+      {% else %}
+
+        {{ form.phone_number(class="form-control", id="phone-number") }}
+      {% endif %}
+
+      {{ form.access_code.label(class="form-control-label") }}
+      {% if form.access_code.errors %}
+        {% for error in form.access_code.errors %}
+          <span>{{ error }}</span>
+        {% endfor %}
+      {% else %}
+        {{ form.access_code(class="form-control", id="access-code") }}
+      {% endif %}
+
+      {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
     </form>
   {% endif %}
 {% endblock content %}
