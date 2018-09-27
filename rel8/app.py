@@ -8,7 +8,7 @@ import models
 from models.user import User
 import os
 import phonenumbers
-from rel8.forms import RegistrationForm, PasswordForm
+from rel8.forms import RegistrationForm, PasswordForm, LoginForm
 from twilio.twiml.messaging_response import MessagingResponse
 
 
@@ -34,9 +34,29 @@ def get_session():
     return session, counter, consent, name_req
 
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    error = None
+    form = LoginForm()
+    if session.get('logged_in'):
+        user = models.storage.get(User, session['user-id'])
+        if user.password is None:
+            return redirect(url_for('password'))
+        else:
+            return render_template('variables.html')
+    else:
+        print('not logged in')
+        if request.method == 'POST' and form.validate_on_submit():
+            phone_number = phonenumbers.parse(request.form['phone_number'], "US")
+            phone_number_formatted = phonenumbers.format_number(
+                phone_number, phonenumbers.PhoneNumberFormat.E164)
+            users = models.storage.all(User)
+            for user in users.values():
+                if user.phone_number == phone_number_formatted:
+                    if bcrypt.check_password_hash(user.password, request.form['password']):
+                        return render_template('variables.html')
+            error = 'Did not match users'
+    return render_template('index.html', form=form, error=error)
 
 
 @app.route('/register/', methods=['GET', 'POST'])
@@ -63,26 +83,6 @@ def register():
     else:
         error = 'Invalid submission'
     return render_template('register.html', form=form, error=error)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    error = None
-    access_code = request.form['access-code']
-    phone_number = phonenumbers.parse(request.form['phone-number'], "US")
-    phone_number_formatted = phonenumbers.format_number(
-        phone_number, phonenumbers.PhoneNumberFormat.E164)
-    user = models.storage.get(User, session['user-id'])
-    if not user:
-        error = 'No account'
-    elif user and user.access_code == access_code:
-        session['logged_in'] = True
-        session['phone-number'] = phone_number_formatted
-        flash('Successfully logged in')
-        return render_template('password.html')
-    else:
-        error = 'Wrong access code'
-    return render_template('register.html', error=error)
 
 
 @app.route('/logout')
