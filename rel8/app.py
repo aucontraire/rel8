@@ -43,7 +43,6 @@ def index():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        print('validated register!')
         session['logged_in'] = True
         return redirect(url_for('password'))
     else:
@@ -75,7 +74,7 @@ def login():
 @app.route('/logout')
 def logout():
     session['logged_in'] = False
-    return index()
+    return redirect(url_for('index'))
 
 
 @app.route('/password', methods=['GET', 'POST'])
@@ -84,15 +83,14 @@ def password(user=None):
     form = PasswordForm()
     user = models.storage.get(User, session['user-id'])
     if request.method == 'POST':
-        print('errors:', form.errors)
-        if form.validate_on_submit():
-            print('validated password submission')
+        if not user:
+            error = 'You need to log in'
+        elif form.validate_on_submit():
             pw_raw = request.form['password']
             user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
             user.save()
             flash('Updated password')
         else:
-            print('password submission not valid')
             error = 'Error in submission'
 
     return render_template('password.html', form=form, error=error)
