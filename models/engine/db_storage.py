@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 """DBStorage class that sets up SQLAlchemy and connects with database"""
+import models
 from models.base_model import Base
 from models.user import User
 import os
 from sqlalchemy import (create_engine)
 from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm.exc import MultipleResultsFound
 
 
 class DBStorage:
@@ -30,7 +32,7 @@ class DBStorage:
         if os.getenv("HBNB_ENV") == 'test':
             Base.metadata.drop_all(bind=self.__engine)
 
-    def all(self, cls=None):
+    def all(self, cls):
         """
         Retrieves dictionary of objects in database
         Args:
@@ -40,21 +42,11 @@ class DBStorage:
         """
         objs_dict = {}
         objs = None
-        """
-        if cls:
-            if cls in classes:
-                cls = classes[cls]
-                objs = self.__session.query(cls).all()
-        else:
-            objs = self.__session.query(State, City).all()
+
+        objs = self.__session.query(cls).all()
         for obj in objs:
             key = "{}.{}".format(type(obj).__name__, obj.id)
             objs_dict[key] = obj
-        """
-        if cls:
-            objs = self.__session.query(cls).all()
-            for obj in objs:
-                objs_dict[obj.phone_number] = obj
 
         return (objs_dict)
 
@@ -88,3 +80,29 @@ class DBStorage:
                                        expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
+
+    def close(self):
+        """
+            Remove private session attribute
+        """
+        self.__session.close()
+
+    def get(self, cls, id):
+        """
+            Method to retrieve one object from db
+            Args:
+                cls (cls): class to query
+                id (str): id of object
+            Returns:
+                object that matches query otherwise None
+        """
+        try:
+            return self.__session.query(cls).filter_by(id=id).one_or_none()
+        except MultipleResultsFound:
+            return None
+
+    def count(self, cls):
+        """
+            Returns the number of objects in storage matching the given class
+        """
+        return len(models.storage.all(cls).values())

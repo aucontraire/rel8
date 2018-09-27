@@ -2,12 +2,9 @@
 """Package initializer"""
 from models.user import User
 import os
+from models.engine.db_storage import DBStorage
 
 
-if os.getenv('REL8_TYPE_STORAGE') == 'db':
-    print('using database')
-    from models.engine.db_storage import DBStorage
-    storage = DBStorage()
-else:
-    print('using something else')
+storage = DBStorage()
+classes = {"User": User}
 storage.reload()
