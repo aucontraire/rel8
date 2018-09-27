@@ -50,14 +50,13 @@ def login():
     phone_number = phonenumbers.parse(request.form['phone-number'], "US")
     phone_number_formatted = phonenumbers.format_number(
         phone_number, phonenumbers.PhoneNumberFormat.E164)
-    users = models.storage.all(User)
-    user = users.get(phone_number_formatted, None)
+
+    user = models.storage.get(User, session['user-id'])
     if not user:
         error = 'No account'
     elif user and user.access_code == access_code:
         session['logged_in'] = True
         session['phone-number'] = phone_number_formatted
-        session['user-id'] = user.id
         flash('Successfully logged in')
         return render_template('password.html')
     else:
@@ -112,6 +111,7 @@ def sms(test=None):
         user.access_code = access_code
         models.storage.new(user)
         models.storage.save()
+        session['user-id'] = user.id
         response.message(
             "Welcome {}! Please go to {}/register/?access-code={}".format(
                 message, SITE_URL, access_code
