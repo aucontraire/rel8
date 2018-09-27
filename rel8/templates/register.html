@@ -1,48 +1,48 @@
 {% extends "base.html" %}
 {% block scripts %}
-  <script>
-    $(document).ready(function () {
-      let urlParams = new URLSearchParams(window.location.search);
-      let code = urlParams.get("access-code");
-      $("#access-code").val(code);
-    });
-  </script>
+    <script>
+        $(document).ready(function () {
+            let urlParams = new URLSearchParams(window.location.search);
+            let code = urlParams.get("access-code");
+            $("#access-code").val(code);
+        });
+    </script>
 {% endblock scripts %}
 {% block content %}
-  {% if session['logged_in'] %}
-    <form class="form-sigin">
-      <div class="alert alert-info" role="alert">You're already logged in!</div>
-      <a href='/logout'>Logout</a>
-    </form>
-  {% else %}
-    <form class="form-signin" action="" method="POST">
-      {{ form.hidden_tag() }}
-      <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
-      <h1 class="h3 mb-3 font-weight-normal">Please register</h1>
-      {% if error %}
-        <div class="alert alert-danger" role="alert">{{ error }}</div>
-      {% endif %}
+    {% if session['logged_in'] %}
+        <form class="form-sigin">
+            <div class="alert alert-info" role="alert">You're already logged in!</div>
+            <a href='/logout'>Logout</a>
+        </form>
+    {% else %}
+        <form class="form-signin" action="" method="POST">
+            {{ form.hidden_tag() }}
+            <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
+            <h1 class="h3 mb-3 font-weight-normal">Please register</h1>
 
-      {{ form.phone_number.label(class="form-control-label") }}
-      {% if form.phone_number.errors %}
-        {% for error in form.phone_number.errors %}
-          <span>{{ error }}</span>
-        {% endfor %}
-      {% else %}
+            {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
 
-        {{ form.phone_number(class="form-control", id="phone-number") }}
-      {% endif %}
+            {{ form.phone_number.label(class="form-control-label") }}
+            {% if form.phone_number.errors %}
+                {% for error in form.phone_number.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            {% else %}
+                {{ form.phone_number(class="form-control", id="phone-number") }}
+            {% endif %}
 
-      {{ form.access_code.label(class="form-control-label") }}
-      {% if form.access_code.errors %}
-        {% for error in form.access_code.errors %}
-          <span>{{ error }}</span>
-        {% endfor %}
-      {% else %}
-        {{ form.access_code(class="form-control", id="access-code") }}
-      {% endif %}
+            {{ form.access_code.label(class="form-control-label") }}
+            {% if form.access_code.errors %}
+                {% for error in form.access_code.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            {% else %}
+                {{ form.access_code(class="form-control", id="access-code") }}
+            {% endif %}
 
-      {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
-    </form>
-  {% endif %}
+            {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
+        </form>
+    {% endif %}
 {% endblock content %}
