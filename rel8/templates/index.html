@@ -1,13 +1,39 @@
 {% extends "base.html" %}
 {% block scripts %}{% endblock scripts %}
 {% block content %}
-    <form class="form-signin">
+    <form class="form-signin" action="" method="POST">
+        {{ form.hidden_tag() }}
         <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
         <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-        <label for="phone-number" class="sr-only">Phone number</label>
-        <input type="text" class="form-control" name="phone-number" id="phone-number" placeholder="phone number">
-        <label for="password" class="sr-only">Password</label>
-        <input type="password" class="form-control" name="password" id="password" placeholder="password" value="">
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% else %}
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-success" role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        {% endif %}
+
+        {{ form.phone_number.label(class="form-control-label") }}
+        {% if form.phone_number.errors %}
+            {% for error in form.phone_number.errors %}
+                <span>{{ error }}</span>
+            {% endfor %}
+        {% else %}
+            {{ form.phone_number(class="form-control", id="phone-number") }}
+        {% endif %}
+
+        {{ form.password.label(class="form-control-label") }}
+        {% if form.password.errors %}
+            {% for error in form.password.errors %}
+                <span>{{ error }}</span>
+            {% endfor %}
+        {% else %}
+            {{ form.password(class="form-control", id="password", placeholder="Between 8-20 characters") }}
+        {% endif %}
+        {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
     </form>
 {% endblock content %}
