@@ -8,7 +8,7 @@ import models
 from models.user import User
 import os
 import phonenumbers
-from rel8.forms import RegistrationForm
+from rel8.forms import RegistrationForm, PasswordForm
 from twilio.twiml.messaging_response import MessagingResponse
 
 
@@ -81,15 +81,21 @@ def logout():
 @app.route('/password', methods=['GET', 'POST'])
 def password(user=None):
     error = None
+    form = PasswordForm()
+    user = models.storage.get(User, session['user-id'])
     if request.method == 'POST':
-        users = models.storage.all(User)
-        user = users.get(session['phone-number'], None)
-        pw_raw = request.form['password']
-        user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
-        user.save()
-        flash('Updated password')
+        print('errors:', form.errors)
+        if form.validate_on_submit():
+            print('validated password submission')
+            pw_raw = request.form['password']
+            user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
+            user.save()
+            flash('Updated password')
+        else:
+            print('password submission not valid')
+            error = 'Error in submission'
 
-    return render_template('password.html', error=error)
+    return render_template('password.html', form=form, error=error)
 
 
 @app.route('/sms/<test>', methods=['POST'])
