@@ -14,3 +14,4 @@ class Session(BaseModel, Base):
     updated_at = Column(DateTime, default=datetime.utcnow(), nullable=False)
     user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
     user = relationship('User', back_populates='sessions')
+    responses = relationship('Response', back_populates='sessions')

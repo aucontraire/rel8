@@ -17,3 +17,4 @@ class Outcome(BaseModel, Base):
     user = relationship('User', back_populates='outcomes')
     calendar_id = Column(String(60), ForeignKey('calendar.id'), nullable=False)
     calendar = relationship('Calendar', back_populates='outcomes')
+    responses = relationship('Response', back_populates='outcomes')

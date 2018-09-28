@@ -17,3 +17,4 @@ class Predictor(BaseModel, Base):
     user = relationship('User', back_populates='predictors')
     calendar_id = Column(String(60), ForeignKey('calendar.id'), nullable=False)
     calendar = relationship('Calendar', back_populates='predictors')
+    responses = relationship('Response', back_populates='predictors')
