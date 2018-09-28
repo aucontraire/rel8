@@ -2,6 +2,7 @@
 """Outcome module"""
 from datetime import datetime
 from models.base_model import Base, BaseModel
+from models.response import Response
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -14,7 +15,7 @@ class Outcome(BaseModel, Base):
     updated_at = Column(DateTime, default=datetime.utcnow(), nullable=False)
     name = Column(String(60), nullable=False)
     user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
-    user = relationship('User', back_populates='outcomes')
-    calendar_id = Column(String(60), ForeignKey('calendar.id'), nullable=False)
-    calendar = relationship('Calendar', back_populates='outcomes')
-    responses = relationship('Response', back_populates='outcomes')
+    user = relationship('User', back_populates='outcome')
+    calendar_id = Column(String(60), ForeignKey('calendars.id'), nullable=False)
+    calendar = relationship('Calendar', back_populates='outcome')
+    responses = relationship('Response', back_populates='outcome')

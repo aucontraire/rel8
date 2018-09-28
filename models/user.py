@@ -2,6 +2,11 @@
 """User module"""
 from datetime import datetime
 from models.base_model import Base, BaseModel
+from models.calendar import Calendar
+from models.outcome import Outcome
+from models.predictor import Predictor
+from models.response import Response
+from models.session import Session
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.orm import relationship
 
@@ -16,8 +21,8 @@ class User(BaseModel, Base):
     access_code = Column(String(60), nullable=False)
     phone_number = Column(String(60), nullable=False)
     password = Column(String(128), nullable=True)
-    calendars = relationship('Calendar', back_populates='users')
-    predictor = relationship('Predictor', uselist=False, back_populates='users')
-    outcome = relationship('Outcome', uselist=False, back_populates='users')
-    sessions = relationship('Session', back_populates='users')
-    responses = relationship('Response', back_populates='users')
+    calendars = relationship('Calendar', back_populates='user')
+    predictor = relationship('Predictor', uselist=False, back_populates='user')
+    outcome = relationship('Outcome', uselist=False, back_populates='user')
+    sessions = relationship('Session', back_populates='user')
+    responses = relationship('Response', back_populates='user')

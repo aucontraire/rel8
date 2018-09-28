@@ -2,6 +2,8 @@
 """Calendar module"""
 from datetime import datetime
 from models.base_model import Base, BaseModel
+from models.outcome import Outcome
+from models.predictor import Predictor
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -15,5 +17,5 @@ class Calendar(BaseModel, Base):
     name = Column(String(60), nullable=False)
     user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
     user = relationship('User', back_populates='calendars')
-    predictor = relationship('Predictor', uselist=False, back_populates='calendars')
-    outcome = relationship('Outcome', uselist=False, back_populates='calendars')
+    predictor = relationship('Predictor', uselist=False, back_populates='calendar')
+    outcome = relationship('Outcome', uselist=False, back_populates='calendar')
