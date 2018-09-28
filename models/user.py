@@ -2,9 +2,8 @@
 """User module"""
 from datetime import datetime
 from models.base_model import Base, BaseModel
-from sqlalchemy import Column, DateTime, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-import uuid
+from sqlalchemy import Column, DateTime, String
+from sqlalchemy.orm import relationship
 
 
 class User(BaseModel, Base):
@@ -17,3 +16,4 @@ class User(BaseModel, Base):
     access_code = Column(String(60), nullable=False)
     phone_number = Column(String(60), nullable=False)
     password = Column(String(128), nullable=True)
+    calendars = relationship('Calendar', back_populates='users')
