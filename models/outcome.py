@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 
 class Outcome(BaseModel, Base):
     """Outcome class"""
-    __tablename__ = "predictors"
+    __tablename__ = "outcomes"
     id = Column(String(60), nullable=False, primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow(), nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow(), nullable=False)
