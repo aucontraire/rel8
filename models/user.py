@@ -17,3 +17,4 @@ class User(BaseModel, Base):
     phone_number = Column(String(60), nullable=False)
     password = Column(String(128), nullable=True)
     calendars = relationship('Calendar', back_populates='users')
+    predictor = relationship('Predictor', uselist=False, back_populates='users')
