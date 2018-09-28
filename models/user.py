@@ -18,3 +18,4 @@ class User(BaseModel, Base):
     password = Column(String(128), nullable=True)
     calendars = relationship('Calendar', back_populates='users')
     predictor = relationship('Predictor', uselist=False, back_populates='users')
+    outcome = relationship('Outcome', uselist=False, back_populates='users')
