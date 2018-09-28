@@ -34,47 +34,63 @@ def get_session():
     return session, counter, consent, name_req
 
 
+def standardize_phone(phone_number):
+    phone_number = phonenumbers.parse(phone_number, "US")
+    phone_number_formatted = phonenumbers.format_number(
+                phone_number, phonenumbers.PhoneNumberFormat.E164)
+    return phone_number_formatted
+
+
+def find_user_by_phone(phone_number):
+    phone_number_formatted = standardize_phone(phone_number)
+    users = models.storage.all(User)
+    for user in users.values():
+        if user.phone_number == phone_number_formatted:
+            return user
+    return None
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = None
     form = LoginForm()
     if session.get('logged_in'):
         user = models.storage.get(User, session['user-id'])
-        if user.password is None:
+        if not user.password:
             return redirect(url_for('password'))
         else:
             return render_template('variables.html')
-    else:
-        if request.method == 'POST' and form.validate_on_submit():
-            phone_number = phonenumbers.parse(request.form['phone_number'], "US")
-            phone_number_formatted = phonenumbers.format_number(
-                phone_number, phonenumbers.PhoneNumberFormat.E164)
-            users = models.storage.all(User)
-            for user in users.values():
-                if user.phone_number == phone_number_formatted:
-                    if not user.password:
-                        error = 'Please set up a password through link we sent you in the text'
-                        return render_template('index.html', form=form, error=error)
-                    elif bcrypt.check_password_hash(user.password, request.form['password']):
-                        session['logged_in'] = True
-                        session['user-id'] = user.id
-                        return render_template('variables.html')
-            error = 'Wrong password'
+
+    if request.method == 'POST' and form.validate_on_submit():
+        user = find_user_by_phone(request.form['phone_number'])
+        if not user:
+            error = 'Account does not exist'
+        else:
+            if not user.password:
+                error = 'First set up a password through link in the text'
+                return render_template('index.html', form=form, error=error)
+            elif bcrypt.check_password_hash(user.password, request.form['password']):
+                session['logged_in'] = True
+                session['user-id'] = user.id
+                return render_template('variables.html')
+            else:
+                error = 'Wrong password'
     return render_template('index.html', form=form, error=error)
 
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     error = None
+    user_id = session.get('user-id', None)
     form = RegistrationForm()
-    if not session.get('user-id', None):
-        error = 'Register through text'
-    elif form.validate_on_submit():
+    if form.validate_on_submit():
         access_code = request.form['access_code']
-        phone_number = phonenumbers.parse(request.form['phone_number'], "US")
-        phone_number_formatted = phonenumbers.format_number(
-            phone_number, phonenumbers.PhoneNumberFormat.E164)
-        user = models.storage.get(User, session['user-id'])
+        phone_number_formatted = standardize_phone(request.form['phone_number'])
+        user = None
+        if user_id:
+            user = models.storage.get(User, session['user-id'])
+        else:
+            user = find_user_by_phone(phone_number_formatted)
         if not user:
             error = 'No account'
         elif user and user.access_code == access_code:
@@ -84,8 +100,7 @@ def register():
             return redirect(url_for('password'))
         else:
             error = 'Wrong access code'
-    else:
-        error = 'Invalid submission'
+
     return render_template('register.html', form=form, error=error)
 
 
