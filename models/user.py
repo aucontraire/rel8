@@ -19,3 +19,4 @@ class User(BaseModel, Base):
     calendars = relationship('Calendar', back_populates='users')
     predictor = relationship('Predictor', uselist=False, back_populates='users')
     outcome = relationship('Outcome', uselist=False, back_populates='users')
+    sessions = relationship('Session', back_populates='users')
