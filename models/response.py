@@ -20,5 +20,6 @@ class Response(BaseModel, Base):
     outcome = relationship('Outcome', back_populates='responses')
     user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
     user = relationship('User', back_populates='responses')
+    message = Column(String(128), nullable=False)
     twilio_json = Column(JSON, nullable=False, default=[])
     error = Column(Boolean, default=False)
