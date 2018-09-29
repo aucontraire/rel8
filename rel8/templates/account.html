@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block scripts %}{% endblock scripts %}
+{% block content %}
+    <form class="form-signin">
+        <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
+        <h1 class="h3 mb-3 font-weight-normal">Welcome {{ user.username }}</h1>
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% else %}
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-success" role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        {% endif %}
+    </form>
+{% endblock content %}

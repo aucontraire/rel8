@@ -8,7 +8,7 @@ import models
 from models.user import User
 import os
 import phonenumbers
-from rel8.forms import RegistrationForm, PasswordForm, LoginForm
+from rel8.forms import RegistrationForm, PasswordForm, LoginForm, VariablesForm
 from twilio.twiml.messaging_response import MessagingResponse
 
 
@@ -72,7 +72,7 @@ def index():
             elif bcrypt.check_password_hash(user.password, request.form['password']):
                 session['logged_in'] = True
                 session['user-id'] = user.id
-                return render_template('variables.html')
+                return redirect(url_for('variables'))
             else:
                 error = 'Wrong password'
     return render_template('index.html', form=form, error=error)
@@ -178,6 +178,35 @@ def sms(test=None):
         session['consent'] = True
 
     return str(response)
+
+
+@app.route('/account', methods=['GET'])
+def account():
+    error = None
+    user = None
+    user_id = session.get('user-id', None)
+    if session.get('logged_in') and user_id:
+        user = models.storage.get(User, user_id)
+    else:
+        return redirect(url_for('password'))
+
+    return render_template('account.html', error=error, user=user)
+
+
+@app.route('/variables', methods=['GET', 'POST'])
+def variables():
+    error = None
+    user = None
+    form = VariablesForm()
+    user_id = session.get('user-id', None)
+    if session.get('logged_in') and user_id:
+        user = models.storage.get(User, user_id)
+    else:
+        return redirect(url_for('password'))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        return redirect(url_for('account'))
+    return render_template('variables.html', form=form, error=error)
 
 
 if __name__ == '__main__':
