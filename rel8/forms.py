@@ -25,3 +25,11 @@ class LoginForm(FlaskForm):
         DataRequired(), Length(min=7, max=20)])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
+
+
+class VariablesForm(FlaskForm):
+    predictor = StringField('Predictor', validators=[
+        DataRequired(), Length(min=2, max=20)])
+    outcome = StringField('Outcome', validators=[
+        DataRequired(), Length(min=2, max=20)])
+    submit = SubmitField('Submit')
