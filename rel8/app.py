@@ -62,6 +62,8 @@ def find_user_by_phone(phone_number):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user:
+        return redirect(url_for('account'))
     error = None
     form = RegistrationForm()
     if form.validate_on_submit():
