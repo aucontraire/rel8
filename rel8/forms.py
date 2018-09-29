@@ -9,6 +9,10 @@ class RegistrationForm(FlaskForm):
         DataRequired(), Length(min=7, max=20)])
     access_code = StringField('Access code', validators=[
         DataRequired(), Length(min=16, max=16)])
+    password = PasswordField('Password', validators=[
+        DataRequired(), Length(min=8, max=20)])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(), Length(min=8, max=20), EqualTo('password')])
     submit = SubmitField('Register')
 
 
@@ -17,6 +21,7 @@ class PasswordForm(FlaskForm):
         DataRequired(), Length(min=8, max=20)])
     confirm_password = PasswordField('Confirm Password', validators=[
         DataRequired(), Length(min=8, max=20), EqualTo('password')])
+
     submit = SubmitField('Submit')
 
 

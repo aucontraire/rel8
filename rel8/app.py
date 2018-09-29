@@ -4,6 +4,7 @@ import binascii
 from flask import abort, flash, Flask, jsonify, render_template
 from flask import redirect, request, session, url_for
 from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import models
 from models.user import User
 import os
@@ -22,6 +23,15 @@ app.secret_key = os.getenv('SECRET_KEY')
 bcrypt = Bcrypt(app)
 
 SITE_URL = os.getenv('SITE_URL')
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return models.storage.get(User, user_id)
 
 
 def get_session():
@@ -50,84 +60,101 @@ def find_user_by_phone(phone_number):
     return None
 
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    error = None
-    form = LoginForm()
-    if session.get('logged_in'):
-        user = models.storage.get(User, session['user-id'])
-        if not user.password:
-            return redirect(url_for('password'))
-        else:
-            return render_template('variables.html')
-
-    if request.method == 'POST' and form.validate_on_submit():
-        user = find_user_by_phone(request.form['phone_number'])
-        if not user:
-            error = 'Account does not exist'
-        else:
-            if not user.password:
-                error = 'First set up a password through link in the text'
-                return render_template('index.html', form=form, error=error)
-            elif bcrypt.check_password_hash(user.password, request.form['password']):
-                session['logged_in'] = True
-                session['user-id'] = user.id
-                return redirect(url_for('variables'))
-            else:
-                error = 'Wrong password'
-    return render_template('index.html', form=form, error=error)
-
-
-@app.route('/register/', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
-    user_id = session.get('user-id', None)
     form = RegistrationForm()
     if form.validate_on_submit():
-        access_code = request.form['access_code']
-        phone_number_formatted = standardize_phone(request.form['phone_number'])
-        user = None
-        if user_id:
-            user = models.storage.get(User, session['user-id'])
+        user = find_user_by_phone(form.phone_number.data)
+        if user:
+            if user.access_code == form.access_code.data:
+                user.password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+                user.save()
+                return redirect(url_for('login'))
+            else:
+                error = 'Check access code or follow link in text'
         else:
-            user = find_user_by_phone(phone_number_formatted)
-        if not user:
-            error = 'No account'
-        elif user and user.access_code == access_code:
-            session['logged_in'] = True
-            session['phone-number'] = phone_number_formatted
-            session['user-id'] = user.id
-            return redirect(url_for('password'))
-        else:
-            error = 'Wrong access code'
+            error = 'Account does not exist'
 
     return render_template('register.html', form=form, error=error)
 
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = find_user_by_phone(form.phone_number.data)
+        if user:
+            if not user.password:
+                error = 'Set up a password first'
+                form = RegistrationForm()
+                return render_template('register.html', form=form, error=error)
+            elif bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user)
+                session['user-id'] = user.id #TODO: keep?
+                session['logged_in'] = True #TODO: keep?
+                #TODO: check if variables are set up
+                return redirect(url_for('account'))
+            else:
+                error = 'Check your password'
+        else:
+            error = 'Account does not exist'
+
+    return render_template('login.html', form=form, error=error)
+
+
 @app.route('/logout')
+@login_required
 def logout():
     session['logged_in'] = False
     session.pop('user-id')
+    logout_user()
     return redirect(url_for('index'))
 
 
-@app.route('/password', methods=['GET', 'POST'])
-def password(user=None):
+@app.route('/account', methods=['GET'])
+@login_required
+def account():
     error = None
-    form = PasswordForm()
-    user = models.storage.get(User, session['user-id'])
-    if request.method == 'POST':
-        if not user:
-            error = 'You need to log in'
-        elif form.validate_on_submit():
-            pw_raw = request.form['password']
-            user.password = bcrypt.generate_password_hash(pw_raw).decode('utf-8')
-            user.save()
-            flash('Updated password')
-        else:
-            error = 'Error in submission'
+    return render_template('account.html', error=error, user=current_user)
 
-    return render_template('password.html', form=form, error=error)
+
+@app.route('/password', methods=['GET', 'POST'])
+@login_required
+def password(user=None):
+    form = PasswordForm()
+    if form.validate_on_submit():
+        current_user.password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        current_user.save()
+        flash('Updated password')
+
+    return render_template('password.html', form=form)
+
+
+@app.route('/variables', methods=['GET', 'POST'])
+@login_required
+def variables():
+    error = None
+    user = None
+    form = VariablesForm()
+    print(type(form))
+
+    user_id = session.get('user-id', None)
+    if session.get('logged_in') and user_id:
+        user = models.storage.get(User, user_id)
+    else:
+        return redirect(url_for('password'))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        return redirect(url_for('account'))
+    return render_template('variables.html', form=form, error=error)
+
 
 
 @app.route('/sms/<test>', methods=['POST'])
@@ -179,34 +206,6 @@ def sms(test=None):
 
     return str(response)
 
-
-@app.route('/account', methods=['GET'])
-def account():
-    error = None
-    user = None
-    user_id = session.get('user-id', None)
-    if session.get('logged_in') and user_id:
-        user = models.storage.get(User, user_id)
-    else:
-        return redirect(url_for('password'))
-
-    return render_template('account.html', error=error, user=user)
-
-
-@app.route('/variables', methods=['GET', 'POST'])
-def variables():
-    error = None
-    user = None
-    form = VariablesForm()
-    user_id = session.get('user-id', None)
-    if session.get('logged_in') and user_id:
-        user = models.storage.get(User, user_id)
-    else:
-        return redirect(url_for('password'))
-
-    if request.method == 'POST' and form.validate_on_submit():
-        return redirect(url_for('account'))
-    return render_template('variables.html', form=form, error=error)
 
 
 if __name__ == '__main__':

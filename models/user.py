@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """User module"""
 from datetime import datetime
+from flask_login import UserMixin
 from models.base_model import Base, BaseModel
 from models.calendar import Calendar
 from models.outcome import Outcome
@@ -11,7 +12,7 @@ from sqlalchemy import Column, DateTime, String
 from sqlalchemy.orm import relationship
 
 
-class User(BaseModel, Base):
+class User(UserMixin, BaseModel, Base):
     """User class"""
     __tablename__ = "users"
     id = Column(String(60), nullable=False, primary_key=True)
