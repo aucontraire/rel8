@@ -9,70 +9,57 @@
     </script>
 {% endblock scripts %}
 {% block content %}
-    {% if session['logged_in'] %}
-        <form class="form-sigin">
-            <div class="alert alert-info" role="alert">You're already logged in!</div>
-            <a href='/logout'>Logout</a>
-        </form>
-    {% else %}
-        <form class="form-signin" action="" method="POST">
-            {{ form.hidden_tag() }}
-            <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
-            <h1 class="h3 mb-3 font-weight-normal">Please register</h1>
-            {% if error %}
-                <div class="alert alert-danger" role="alert">{{ error }}</div>
-            {% endif %}
-            {{ form.phone_number.label(class="form-control-label") }}
-            {% if form.phone_number.errors %}
-                {{ form.phone_number(class="form-control form-control-lg is-invalid", id="phone-number") }}
-                <div class="invalid-feedback">
-                    {% for error in form.phone_number.errors %}
-                        <span>{{ error }}</span>
-                    {% endfor %}
-                </div>
-            {% else %}
-                {{ form.phone_number(class="form-control", id="phone-number") }}
-            {% endif %}
-
-            {{ form.password.label(class="form-control-label") }}
-            {% if form.password.errors %}
-                {{ form.password(class="form-control form-control-lg is-invalid", id="password") }}
-                <div class="invalid-feedback">
-                    {% for error in form.password.errors %}
-                        <span>{{ error }}</span>
-                    {% endfor %}
-                </div>
-            {% else %}
-                {{ form.password(class="form-control", id="password", placeholder="Between 8-20 characters") }}
-            {% endif %}
-
-            {{ form.confirm_password.label(class="form-control-label") }}
-            {% if form.confirm_password.errors %}
-                {{ form.confirm_password(class="form-control form-control-lg is-invalid", id="confirm-password") }}
-                <div class="invalid-feedback">
-                    {% for error in form.confirm_password.errors %}
-                        <span>{{ error }}</span>
-                    {% endfor %}
-                </div>
-            {% else %}
-                {{ form.confirm_password(class="form-control", id="confirm-password") }}
-            {% endif %}
-
-            {{ form.access_code.label(class="form-control-label") }}
-            {% if form.access_code.errors %}
-                {{ form.access_code(class="form-control form-control-lg is-invalid", id="access-code") }}
-                <div class="invalid-feedback">
-                    {% for error in form.access_code.errors %}
-                        <span>{{ error }}</span>
-                    {% endfor %}
-                </div>
-            {% else %}
-                {{ form.access_code(class="form-control", id="access-code") }}
-            {% endif %}
-
-
-
-            {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
-        </form>
-    {% endif %}
+    <form class="form-signin" action="" method="POST">
+        {{ form.hidden_tag() }}
+        <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
+        <h1 class="h3 mb-3 font-weight-normal">Please register</h1>
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endif %}
+        {{ form.phone_number.label(class="form-control-label") }}
+        {% if form.phone_number.errors %}
+            {{ form.phone_number(class="form-control form-control-lg is-invalid", id="phone-number") }}
+            <div class="invalid-feedback">
+                {% for error in form.phone_number.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ form.phone_number(class="form-control", id="phone-number") }}
+        {% endif %}
+        {{ form.password.label(class="form-control-label") }}
+        {% if form.password.errors %}
+            {{ form.password(class="form-control form-control-lg is-invalid", id="password") }}
+            <div class="invalid-feedback">
+                {% for error in form.password.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ form.password(class="form-control", id="password", placeholder="Between 8-20 characters") }}
+        {% endif %}
+        {{ form.confirm_password.label(class="form-control-label") }}
+        {% if form.confirm_password.errors %}
+            {{ form.confirm_password(class="form-control form-control-lg is-invalid", id="confirm-password") }}
+            <div class="invalid-feedback">
+                {% for error in form.confirm_password.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ form.confirm_password(class="form-control", id="confirm-password") }}
+        {% endif %}
+        {{ form.access_code.label(class="form-control-label") }}
+        {% if form.access_code.errors %}
+            {{ form.access_code(class="form-control form-control-lg is-invalid", id="access-code") }}
+            <div class="invalid-feedback">
+                {% for error in form.access_code.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ form.access_code(class="form-control", id="access-code") }}
+        {% endif %}
+        {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
+    </form>
 {% endblock content %}
