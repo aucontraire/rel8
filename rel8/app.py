@@ -62,8 +62,6 @@ def find_user_by_phone(phone_number):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if current_user:
-        return redirect(url_for('account'))
     error = None
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -145,41 +143,33 @@ def password(user=None):
 @login_required
 def variables():
     error = None
-    user = None
     form = VariablesForm()
-    print(type(form))
 
-    user_id = session.get('user-id', None)
-    if session.get('logged_in') and user_id:
-        user = models.storage.get(User, user_id)
-    else:
-        return redirect(url_for('password'))
+    if form.validate_on_submit():
+        predictor = form.predictor.data
+        outcome = form.outcome.data
 
-    if request.method == 'POST' and form.validate_on_submit():
-        return redirect(url_for('account'))
     return render_template('variables.html', form=form, error=error)
 
 
-
-@app.route('/sms/<test>', methods=['POST'])
-def sms(test=None):
+@app.route('/sms', methods=['POST'])
+def sms():
     session, counter, consent, name_req = get_session()
     response = MessagingResponse()
+    phone_number = request.form['From']
+    message = request.form['Body']
 
-    json = request.get_json()
-    phone_number = json['From']
-    message = json['Body']
-
-    users = models.storage.all(User)
-    user = users.get(phone_number, None)
+    user = find_user_by_phone(phone_number)
     if user:
         response.message(
             "Hi {}, welcome. This is visit #{}.".format(
                 user.username, counter
             )
         )
-        # TODO: determine predictor/symptom, save message, create  gcal entry
-
+        # TODO: determine predictor/outcome, save message, create gcal entry
+        if message.strip().lower() == "clear":
+            session.clear()
+            response.message("Session cleared")
     elif consent is True and name_req is True:
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
