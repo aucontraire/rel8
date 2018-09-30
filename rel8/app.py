@@ -83,6 +83,8 @@ def register():
 
 @app.route('/')
 def index():
+    if current_user:
+        return redirect('account')
     return render_template('index.html')
 
 
