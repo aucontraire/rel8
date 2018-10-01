@@ -6,6 +6,8 @@ from flask import redirect, request, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import models
+from models.outcome import Outcome
+from models.predictor import Predictor
 from models.user import User
 import os
 import phonenumbers
@@ -146,8 +148,18 @@ def variables():
     form = VariablesForm()
 
     if form.validate_on_submit():
-        predictor = form.predictor.data
-        outcome = form.outcome.data
+        predictor = Predictor(
+            name=form.predictor.data,
+            user_id=current_user.id
+        )
+        outcome = Outcome(
+            name=form.outcome.data,
+            user_id=current_user.id
+        )
+        models.storage.new(predictor)
+        models.storage.new(outcome)
+        models.storage.save()
+        flash('Variables added')
 
     return render_template('variables.html', form=form, error=error)
 
