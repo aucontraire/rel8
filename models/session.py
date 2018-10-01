@@ -16,3 +16,4 @@ class Session(BaseModel, Base):
     user_id = Column(String(60), ForeignKey('users.id'), nullable=False)
     user = relationship('User', back_populates='sessions')
     responses = relationship('Response', back_populates='session')
+    complete = Column(Boolean, default=False)
