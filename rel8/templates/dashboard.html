@@ -2,7 +2,9 @@
 {% block scripts %}{% endblock scripts %}
 {% block content %}
     <div class="container">
-        <h1 class="h3 mb-3 font-weight-normal">{{ user.username }}</h1>
+        <div class="row">
+            <h1 class="h3 mb-3 font-weight-normal">{{ user.username }}</h1>
+        </div>
         {% if error %}
             <div class="alert alert-danger" role="alert">{{ error }}</div>
         {% else %}
@@ -15,11 +17,18 @@
             {% endwith %}
         {% endif %}
         {% if user.predictor and user.outcome %}
-            <span class="btn btn-primary">{{ user.predictor.name }}</span><span style="font-size:16px;">&#8680;</span><span class="btn btn-danger">{{ user.outcome.name }}</div>
+            <div class="row align-items-center justify-content-center align-self-center">
+                <div class="col-6 text-center">
+                    <span class="btn btn-primary">{{ user.predictor.name }}</span>
+                </div>
+                <div class="col-6 text-center">
+                    <span class="btn btn-danger">{{ user.outcome.name }}</div>
+                </div>
+
+            </div>
         {% else %}
             <div class="alert alert-warning" role="alert">You must <a href="{{ url_for('variables') }}">set up your variables</a> before you can do any tracking.</div>
         {% endif %}
-
         {% if responses %}
             <div class="table-responsive">
                 <table class="table">
