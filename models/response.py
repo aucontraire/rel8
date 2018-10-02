@@ -25,7 +25,7 @@ class Response(BaseModel, Base):
     error = Column(Boolean, default=False)
 
     def human_created_at(self):
-        return self.created_at.strftime('%B %d, %Y, %I:%M %p')
+        return self.created_at.strftime('%b %-d, %Y, %-I:%M %p')
 
     def human_updated_at(self):
-        return self.updated_at.strftime('%B %d, %Y, %I:%M %p')
+        return self.updated_at.strftime('%b %-d, %Y, %-I:%M %p')
