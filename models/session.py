@@ -3,7 +3,7 @@
 from datetime import datetime
 from models.base_model import Base, BaseModel
 from models.response import Response
-from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 
