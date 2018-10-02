@@ -104,7 +104,6 @@ def login():
             elif bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 session['user-id'] = user.id #TODO: keep?
-                session['logged_in'] = True #TODO: keep?
                 return redirect(url_for('account'))
             else:
                 error = 'Check your password'
@@ -117,7 +116,6 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
-    session['logged_in'] = False
     session.pop('user-id')
     logout_user()
     return redirect(url_for('index'))
@@ -184,12 +182,7 @@ def sms():
         elif message.strip().lower() != user.predictor.name and message.strip().lower() != user.outcome.name:
             response.message('That does not match your variables. Try again.')
         else:
-            print('user sessions:', len(user.sessions), type(user.sessions))
             user.sessions.sort(key=lambda sess: sess.updated_at, reverse=True)
-
-            for sess in user.sessions:
-                print(sess.updated_at)
-
             if len(user.sessions) == 0 or user.sessions[0].complete is True:
                 print('0 sessions or last session complete is True')
                 sms_session = Session(user_id=user.id)
