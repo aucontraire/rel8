@@ -8,6 +8,8 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 import models
 from models.outcome import Outcome
 from models.predictor import Predictor
+from models.response import Response
+from models.session import Session
 from models.user import User
 import os
 import phonenumbers
@@ -103,7 +105,6 @@ def login():
                 login_user(user)
                 session['user-id'] = user.id #TODO: keep?
                 session['logged_in'] = True #TODO: keep?
-                #TODO: check if variables are set up
                 return redirect(url_for('account'))
             else:
                 error = 'Check your password'
@@ -126,6 +127,7 @@ def logout():
 @login_required
 def account():
     error = None
+    current_user.responses.sort(key=lambda resp: resp.updated_at, reverse=False)
     return render_template('account.html', error=error, user=current_user)
 
 
@@ -173,15 +175,61 @@ def sms():
 
     user = find_user_by_phone(phone_number)
     if user:
-        response.message(
-            "Hi {}, welcome. This is visit #{}.".format(
-                user.username, counter
+        if not user.predictor and not user.outcome:
+            response.message(
+                "Hi {}. You need to set up your variables first: {}".format(
+                    user.username, SITE_URL
+                )
             )
-        )
-        # TODO: determine predictor/outcome, save message, create gcal entry
+        elif message.strip().lower() != user.predictor.name and message.strip().lower() != user.outcome.name:
+            response.message('That does not match your variables. Try again.')
+        else:
+            print('user sessions:', len(user.sessions), type(user.sessions))
+            user.sessions.sort(key=lambda sess: sess.updated_at, reverse=True)
+
+            for sess in user.sessions:
+                print(sess.updated_at)
+
+            if len(user.sessions) == 0 or user.sessions[0].complete is True:
+                print('0 sessions or last session complete is True')
+                sms_session = Session(user_id=user.id)
+                models.storage.new(sms_session)
+                models.storage.save()
+                if message.strip().lower() == user.predictor.name:
+                    print('matched predictor name')
+                    sms_response = Response(
+                        session_id=sms_session.id,
+                        predictor_id=user.predictor.id,
+                        user_id=user.id,
+                        message=message,
+                        twilio_json="{}"
+                    )
+                    models.storage.new(sms_response)
+                    models.storage.save()
+                else:
+                    response.message('This should be the predictor.')
+            elif user.sessions[0].complete is False:
+                print('last session complete is False')
+                print(message, user.outcome.name)
+                print(len(message), len(user.outcome.name))
+                if message.strip().lower() == user.outcome.name:
+                    print('matched outcome name')
+                    sms_session = user.sessions[0]
+                    sms_response = Response(
+                        session_id=sms_session.id,
+                        outcome_id=user.outcome.id,
+                        user_id=user.id,
+                        message=message,
+                        twilio_json="{}"
+                    )
+                    models.storage.new(sms_response)
+                    sms_session.complete = True
+                    models.storage.save()
+
         if message.strip().lower() == "clear":
             session.clear()
             response.message("Session cleared")
+
     elif consent is True and name_req is True:
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
