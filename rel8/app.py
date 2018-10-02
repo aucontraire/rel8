@@ -125,8 +125,16 @@ def logout():
 @login_required
 def dashboard():
     error = None
-    current_user.responses.sort(key=lambda resp: resp.updated_at, reverse=False)
-    return render_template('dashboard.html', error=error, user=current_user)
+    responses = []
+    current_user.sessions.sort(key=lambda session: session.updated_at, reverse=False)
+    for session in current_user.sessions:
+        session.responses.sort(key=lambda response: response.updated_at, reverse=False)
+        if len(session.responses) == 1:
+            responses.append((session.responses[0], ))
+        else:
+            responses.append((session.responses[0], session.responses[1]))
+
+    return render_template('dashboard.html', error=error, user=current_user, responses=responses)
 
 
 @app.route('/password', methods=['GET', 'POST'])

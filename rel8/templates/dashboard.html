@@ -20,20 +20,32 @@
             <div class="alert alert-warning" role="alert">You must <a href="{{ url_for('variables') }}">set up your variables</a> before you can do any tracking.</div>
         {% endif %}
 
-        {% if user.responses %}
+        {% if responses %}
             <div class="table-responsive">
                 <table class="table">
-                    <thead><tr><th scope="col">Date</th><th scope="col">Response</th></tr></thead>
-                    {% for response in user.responses %}
-                        {% if response.predictor %}
-                            <tr class="table-primary"><td>{{ response.human_updated_at() }}</td><td>{{ response.message }}</td></tr>
-                        {% else %}
-                            <tr class="table-danger"><td>{{ response.human_updated_at() }}</td><td>{{ response.message }}</td></tr>
-                        {% endif %}
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Predictor</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Outcome</th>
+                        </tr>
+                    </thead>
+                    {% for response in responses %}
+                        <tr>
+                            <td>{{ response.0.human_updated_at() }}</td>
+                            <td>{{ response.0.message }}</td>
+                            {% if response.1 %}
+                                <td>{{ response.1.human_updated_at() }}</td>
+                                <td>{{ response.1.message }}</td>
+                            {% else %}
+                                <td></td>
+                                <td></td>
+                            {% endif %}
+                        </tr>
                     {% endfor %}
                 </table>
             </div>
         {% endif %}
-
     </div>
 {% endblock content %}
