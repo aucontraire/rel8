@@ -1,43 +1,45 @@
-{% extends "base.html" %}
+{% extends "base_setup.html" %}
 {% block scripts %}{% endblock scripts %}
 {% block content %}
-    <form class="form-signin" action="" method="POST">
-         {{ form.hidden_tag() }}
-        <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
-        <h1 class="h3 mb-3 font-weight-normal">Set variables</h1>
-        {% if error %}
-            <div class="alert alert-danger" role="alert">{{ error }}</div>
-        {% else %}
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-success" role="alert">{{ message }}</div>
+    <div class="container">
+        <form class="form-signin" action="" method="POST">
+            {{ form.hidden_tag() }}
+            <img style="width:250px;" src="{{ url_for('static', filename='images/rel8-logo.png') }}">
+            <h1 class="h3 mb-3 font-weight-normal">Set variables</h1>
+            {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% else %}
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-success" role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            {{ form.predictor.label(class="form-control-label") }}
+            {% if form.predictor.errors %}
+                {{ form.predictor(class="form-control form-control-lg is-invalid", id="predictor") }}
+                <div class="invalid-feedback">
+                    {% for error in form.predictor.errors %}
+                        <span>{{ error }}</span>
                     {% endfor %}
-                {% endif %}
-            {% endwith %}
-        {% endif %}
-        {{ form.predictor.label(class="form-control-label") }}
-        {% if form.predictor.errors %}
-            {{ form.predictor(class="form-control form-control-lg is-invalid", id="predictor") }}
-            <div class="invalid-feedback">
-                {% for error in form.predictor.errors %}
-                    <span>{{ error }}</span>
-                {% endfor %}
-            </div>
-        {% else %}
-            {{ form.predictor(class="form-control", id="predictor") }}
-        {% endif %}
-        {{ form.outcome.label(class="form-control-label") }}
-        {% if form.outcome.errors %}
-            {{ form.outcome(class="form-control form-control-lg is-invalid", id="outcome") }}
-            <div class="invalid-feedback">
-                {% for error in form.outcome.errors %}
-                    <span>{{ error }}</span>
-                {% endfor %}
-            </div>
-        {% else %}
-            {{ form.outcome(class="form-control", id="outcome") }}
-        {% endif %}
-        {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
-    </form>
+                </div>
+            {% else %}
+                {{ form.predictor(class="form-control", id="predictor") }}
+            {% endif %}
+            {{ form.outcome.label(class="form-control-label") }}
+            {% if form.outcome.errors %}
+                {{ form.outcome(class="form-control form-control-lg is-invalid", id="outcome") }}
+                <div class="invalid-feedback">
+                    {% for error in form.outcome.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.outcome(class="form-control", id="outcome") }}
+            {% endif %}
+            {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
+        </form>
+    </div>
 {% endblock content %}
