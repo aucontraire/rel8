@@ -23,3 +23,9 @@ class Response(BaseModel, Base):
     message = Column(String(128), nullable=False)
     twilio_json = Column(JSON, nullable=False, default=[])
     error = Column(Boolean, default=False)
+
+    def human_created_at(self):
+        return self.created_at.strftime('%B %d, %Y, %I:%M %p')
+
+    def human_updated_at(self):
+        return self.updated_at.strftime('%B %d, %Y, %I:%M %p')
