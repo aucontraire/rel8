@@ -2,7 +2,7 @@
 {% block scripts %}{% endblock scripts %}
 {% block content %}
     <div class="container">
-        <h1 class="h3 mb-3 font-weight-normal">Welcome {{ user.username }}</h1>
+        <h1 class="h3 mb-3 font-weight-normal">{{ user.username }}</h1>
         {% if error %}
             <div class="alert alert-danger" role="alert">{{ error }}</div>
         {% else %}
@@ -46,6 +46,8 @@
                     {% endfor %}
                 </table>
             </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">You don't have any data yet.</div>
         {% endif %}
     </div>
 {% endblock content %}
