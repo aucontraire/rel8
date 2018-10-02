@@ -17,7 +17,7 @@
         {% if user.predictor and user.outcome %}
             <span class="badge badge-pill badge-primary">{{ user.predictor.name }}</span><span style="font-size:16px;">&#8680;</span><span class="badge badge-pill badge-danger">{{ user.outcome.name }}</div>
         {% else %}
-            <div class="alert alert-warning" role="alert">You must set up your variables before you do any tracking</div>
+            <div class="alert alert-warning" role="alert">You must <a href="{{ url_for('variables') }}">set up your variables</a> before you can do any tracking.</div>
         {% endif %}
 
         {% if user.responses %}
