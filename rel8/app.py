@@ -86,7 +86,7 @@ def register():
 @app.route('/')
 def index():
     if current_user:
-        return redirect('account')
+        return redirect('dashboard')
     return render_template('index.html')
 
 
@@ -104,7 +104,7 @@ def login():
             elif bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 session['user-id'] = user.id #TODO: keep?
-                return redirect(url_for('account'))
+                return redirect(url_for('dashboard'))
             else:
                 error = 'Check your password'
         else:
@@ -121,12 +121,12 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/account', methods=['GET'])
+@app.route('/dashboard', methods=['GET'])
 @login_required
-def account():
+def dashboard():
     error = None
     current_user.responses.sort(key=lambda resp: resp.updated_at, reverse=False)
-    return render_template('account.html', error=error, user=current_user)
+    return render_template('dashboard.html', error=error, user=current_user)
 
 
 @app.route('/password', methods=['GET', 'POST'])
