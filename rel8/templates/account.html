@@ -1,7 +1,7 @@
 {% extends "base_setup.html" %}
 {% block scripts %}{% endblock scripts %}
 {% block content %}
-    <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+    <div class="container">
         <h1 class="h3 mb-3 font-weight-normal">Welcome {{ user.username }}</h1>
         {% if error %}
             <div class="alert alert-danger" role="alert">{{ error }}</div>
@@ -15,41 +15,25 @@
             {% endwith %}
         {% endif %}
         {% if user.predictor and user.outcome %}
-            <span class="badge badge-pill badge-primary">{{ user.predictor.name }}</span> -> <span class="badge badge-pill badge-danger">{{ user.outcome.name }}</div>
+            <span class="badge badge-pill badge-primary">{{ user.predictor.name }}</span><span style="font-size:16px;">&#8680;</span><span class="badge badge-pill badge-danger">{{ user.outcome.name }}</div>
         {% else %}
             <div class="alert alert-warning" role="alert">You must set up your variables before you do any tracking</div>
         {% endif %}
-    </div>
-    <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
-        <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
-            <div class="my-3 py-3">
-                <h2 class="display-5">Another headline</h2>
-                <p class="lead">And an even wittier subheading.</p>
+
+        {% if user.responses %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th scope="col">Date</th><th scope="col">Response</th></tr></thead>
+                    {% for response in user.responses %}
+                        {% if response.predictor %}
+                            <tr class="table-primary"><td>{{ response.human_updated_at() }}</td><td>{{ response.message }}</td></tr>
+                        {% else %}
+                            <tr class="table-danger"><td>{{ response.human_updated_at() }}</td><td>{{ response.message }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
             </div>
-            <div class="bg-light shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
-        </div>
-        <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
-            <div class="my-3 p-3">
-                <h2 class="display-5">Another headline</h2>
-                <p class="lead">And an even wittier subheading.</p>
-            </div>
-            <div class="bg-dark shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
-        </div>
-    </div>
-    <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
-        <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
-            <div class="my-3 p-3">
-                <h2 class="display-5">Another headline</h2>
-                <p class="lead">And an even wittier subheading.</p>
-            </div>
-            <div class="bg-dark shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
-        </div>
-        <div class="bg-primary mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
-            <div class="my-3 py-3">
-                <h2 class="display-5">Another headline</h2>
-                <p class="lead">And an even wittier subheading.</p>
-            </div>
-            <div class="bg-light shadow-sm mx-auto" style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
-        </div>
+        {% endif %}
+
     </div>
 {% endblock content %}
