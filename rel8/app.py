@@ -256,15 +256,15 @@ def sms():
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
         user = User()
-        user.username = message
+        user.username = message.strip()
         user.phone_number = phone_number
         user.access_code = access_code
         models.storage.new(user)
         models.storage.save()
         session['user-id'] = user.id
         response.message(
-            "Welcome {}! Please go to {}/register/?access-code={}".format(
-                message, SITE_URL, access_code
+            "Welcome {}! Please go to: {}/register/?access-code={}".format(
+                user.username, SITE_URL, access_code
             )
         )
     elif consent is True and name_req is False:
