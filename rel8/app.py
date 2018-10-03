@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""ReL8 Flask app"""
+"""rel8 Flask app"""
 import binascii
+import datetime
 from flask import abort, flash, Flask, jsonify, render_template
 from flask import redirect, request, session, url_for
 from flask_bcrypt import Bcrypt
@@ -158,11 +159,11 @@ def variables():
 
     if form.validate_on_submit():
         predictor = Predictor(
-            name=form.predictor.data,
+            name=form.predictor.data.strip().lower(),
             user_id=current_user.id
         )
         outcome = Outcome(
-            name=form.outcome.data,
+            name=form.outcome.data.strip().lower(),
             user_id=current_user.id
         )
         interval = Interval(
@@ -178,13 +179,41 @@ def variables():
     return render_template('variables.html', form=form, error=error)
 
 
+def session_expired(created_at, interval):
+    delta = datetime.timedelta(hours=interval)
+    now = datetime.utcnow()
+    return now > created_at + delta
+
+
+def new_session(user, message, response):
+    sms_session = Session(
+        user_id=user.id,
+        interval_id=user.interval.id
+    )
+    models.storage.new(sms_session)
+    models.storage.save()
+
+    if message.strip().lower() == user.predictor.name:
+        print('matched predictor name')
+        sms_response = Response(
+            session_id=sms_session.id,
+            predictor_id=user.predictor.id,
+            user_id=user.id,
+            message=message,
+            twilio_json="{}"
+        )
+        models.storage.new(sms_response)
+        models.storage.save()
+    else:
+        response.message('This should be the predictor.')
+
+
 @app.route('/sms', methods=['POST'])
 def sms():
     session, counter, consent, name_req = get_session()
     response = MessagingResponse()
     phone_number = request.form['From']
     message = request.form['Body']
-
     user = find_user_by_phone(phone_number)
     if user:
         if not user.predictor and not user.outcome:
@@ -197,46 +226,33 @@ def sms():
             response.message('That does not match your variables. Try again.')
         else:
             user.sessions.sort(key=lambda sess: sess.updated_at, reverse=True)
-            if len(user.sessions) == 0 or user.sessions[0].complete is True:
-                print('0 sessions or last session complete is True')
-                sms_session = Session(user_id=user.id)
-                models.storage.new(sms_session)
-                models.storage.save()
-                if message.strip().lower() == user.predictor.name:
-                    print('matched predictor name')
-                    sms_response = Response(
-                        session_id=sms_session.id,
-                        predictor_id=user.predictor.id,
-                        user_id=user.id,
-                        message=message,
-                        twilio_json="{}"
-                    )
-                    models.storage.new(sms_response)
-                    models.storage.save()
-                else:
-                    response.message('This should be the predictor.')
-            elif user.sessions[0].complete is False:
-                print('last session complete is False')
-                print(message, user.outcome.name)
-                print(len(message), len(user.outcome.name))
-                if message.strip().lower() == user.outcome.name:
-                    print('matched outcome name')
-                    sms_session = user.sessions[0]
-                    sms_response = Response(
-                        session_id=sms_session.id,
-                        outcome_id=user.outcome.id,
-                        user_id=user.id,
-                        message=message,
-                        twilio_json="{}"
-                    )
-                    models.storage.new(sms_response)
-                    sms_session.complete = True
-                    models.storage.save()
-
-        if message.strip().lower() == "clear":
-            session.clear()
-            response.message("Session cleared")
-
+            if message.strip().lower() == user.predictor.name:
+                if len(user.sessions) == 0 or user.sessions[0].complete is True:
+                    new_session(user, message, response)
+                elif user.sessions[0].complete is False:
+                    if session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
+                        user.sessions[0].complete = True
+                        new_session(user, message, response)
+                    else:
+                        response.message('We were expecting outcome: {}'.format(user.outcome.name))
+            elif message.strip().lower() == user.outcome.name:
+                if len(user.sessions) == 0 or user.sessions[0].complete is True:
+                    response.message('We were expecting predictor: {}'.format(user.predictor.name))
+                elif user.sessions[0].complete is False:
+                    if session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
+                        user.sessions[0].complete = True
+                        response.message('We were expecting predictor: {}'.format(user.predictor.name))
+                    else:
+                        sms_response = Response(
+                            session_id=user.sessions[0].id,
+                            outcome_id=user.outcome.id,
+                            user_id=user.id,
+                            message=message,
+                            twilio_json="{}"
+                        )
+                        models.storage.new(sms_response)
+                        user.sessions[0].complete = True
+                        models.storage.save()
     elif consent is True and name_req is True:
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
@@ -252,7 +268,6 @@ def sms():
                 message, SITE_URL, access_code
             )
         )
-
     elif consent is True and name_req is False:
         session['name_req'] = True
         if message.strip().lower() == 'yes':
@@ -260,7 +275,6 @@ def sms():
             response.message("What's your name?")
         elif message.strip().lower() == 'no':
             response.message("Sorry to hear that. Bye.")
-
     else:
         response.message("Would you like to enroll in rel8? [Yes, No]")
         session['consent'] = True
