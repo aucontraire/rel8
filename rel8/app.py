@@ -181,7 +181,7 @@ def variables():
 
 def session_expired(created_at, interval):
     delta = datetime.timedelta(hours=interval)
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
     return now > created_at + delta
 
 
@@ -194,7 +194,6 @@ def new_session(user, message, response):
     models.storage.save()
 
     if message.strip().lower() == user.predictor.name:
-        print('matched predictor name')
         sms_response = Response(
             session_id=sms_session.id,
             predictor_id=user.predictor.id,
