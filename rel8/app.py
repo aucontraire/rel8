@@ -155,26 +155,38 @@ def password(user=None):
 @login_required
 def variables():
     error = None
-    form = VariablesForm()
+    data = {
+        'predictor': current_user.predictor.name,
+        'outcome': current_user.outcome.name,
+        'duration': current_user.interval.duration
+    }
 
+    form = VariablesForm(data=data)
     if form.validate_on_submit():
-        predictor = Predictor(
-            name=form.predictor.data.strip().lower(),
-            user_id=current_user.id
-        )
-        outcome = Outcome(
-            name=form.outcome.data.strip().lower(),
-            user_id=current_user.id
-        )
-        interval = Interval(
-            duration=form.duration.data,
-            user_id=current_user.id
-        )
-        models.storage.new(predictor)
-        models.storage.new(outcome)
-        models.storage.new(interval)
+        if current_user.predictor:
+            current_user.predictor.name = form.predictor.data.strip().lower()
+            current_user.outcome.name = form.outcome.data.strip().lower()
+            current_user.interval.duration = form.duration.data
+            flash('Variables updated')
+        else:
+            predictor = Predictor(
+                name=form.predictor.data.strip().lower(),
+                user_id=current_user.id
+            )
+            outcome = Outcome(
+                name=form.outcome.data.strip().lower(),
+                user_id=current_user.id
+            )
+            interval = Interval(
+                duration=form.duration.data,
+                user_id=current_user.id
+            )
+            models.storage.new(predictor)
+            models.storage.new(outcome)
+            models.storage.new(interval)
+            flash('Variables added')
+
         models.storage.save()
-        flash('Variables added')
 
     return render_template('variables.html', form=form, error=error)
 
