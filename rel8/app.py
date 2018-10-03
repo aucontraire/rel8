@@ -6,6 +6,7 @@ from flask import redirect, request, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import models
+from models.interval import Interval
 from models.outcome import Outcome
 from models.predictor import Predictor
 from models.response import Response
@@ -164,8 +165,13 @@ def variables():
             name=form.outcome.data,
             user_id=current_user.id
         )
+        interval = Interval(
+            duration=form.duration.data,
+            user_id=current_user.id
+        )
         models.storage.new(predictor)
         models.storage.new(outcome)
+        models.storage.new(interval)
         models.storage.save()
         flash('Variables added')
 

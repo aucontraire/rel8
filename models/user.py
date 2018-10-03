@@ -3,6 +3,7 @@
 from datetime import datetime
 from flask_login import UserMixin
 from models.base_model import Base, BaseModel
+from models.interval import Interval
 from models.outcome import Outcome
 from models.predictor import Predictor
 from models.response import Response
@@ -21,6 +22,7 @@ class User(UserMixin, BaseModel, Base):
     access_code = Column(String(60), nullable=False)
     phone_number = Column(String(60), nullable=False)
     password = Column(String(128), nullable=True)
+    interval = relationship('Interval', uselist=False, back_populates='user')
     predictor = relationship('Predictor', uselist=False, back_populates='user')
     outcome = relationship('Outcome', uselist=False, back_populates='user')
     sessions = relationship('Session', back_populates='user')

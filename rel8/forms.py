@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms import IntegerField, PasswordField, StringField, SubmitField
+from wtforms.validators import DataRequired, EqualTo, Length, NumberRange
 
 
 class RegistrationForm(FlaskForm):
@@ -37,4 +37,6 @@ class VariablesForm(FlaskForm):
         DataRequired(), Length(min=2, max=20)])
     outcome = StringField('Outcome', validators=[
         DataRequired(), Length(min=2, max=20)])
+    duration = IntegerField('Duration', validators=[
+        DataRequired(), NumberRange(min=1)])
     submit = SubmitField('Submit')
