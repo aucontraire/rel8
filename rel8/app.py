@@ -133,7 +133,7 @@ def dashboard():
         session.responses.sort(key=lambda response: response.updated_at, reverse=False)
         if len(session.responses) == 1:
             responses.append((session.responses[0], ))
-        else:
+        elif len(session.responses) == 2:
             responses.append((session.responses[0], session.responses[1]))
 
     return render_template('dashboard.html', error=error, user=current_user, responses=responses)
