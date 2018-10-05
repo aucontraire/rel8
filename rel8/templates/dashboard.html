@@ -38,6 +38,7 @@
                             <th scope="col">Predictor</th>
                             <th scope="col">Date</th>
                             <th scope="col">Outcome</th>
+                            <th scope="col">Hours</th>
                         </tr>
                     </thead>
                     {% for response in responses %}
@@ -47,7 +48,9 @@
                             {% if response.1 %}
                                 <td>{{ response.1.human_updated_at() }}</td>
                                 <td>{{ response.1.message }}</td>
+                                <td>{{ response.2 }}</td>
                             {% else %}
+                                <td></td>
                                 <td></td>
                                 <td></td>
                             {% endif %}

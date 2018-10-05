@@ -2,6 +2,7 @@
 """rel8 Flask app"""
 import binascii
 import datetime
+from dateutil import relativedelta
 from flask import abort, flash, Flask, jsonify, render_template
 from flask import redirect, request, session, url_for
 from flask_bcrypt import Bcrypt
@@ -134,7 +135,8 @@ def dashboard():
         if len(session.responses) == 1:
             responses.append((session.responses[0], ))
         elif len(session.responses) == 2:
-            responses.append((session.responses[0], session.responses[1]))
+            diff = relativedelta.relativedelta(session.responses[1].updated_at, session.responses[0].updated_at)
+            responses.append((session.responses[0], session.responses[1], diff.hours))
 
     return render_template('dashboard.html', error=error, user=current_user, responses=responses)
 
