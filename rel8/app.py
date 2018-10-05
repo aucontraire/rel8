@@ -155,10 +155,19 @@ def password(user=None):
 @login_required
 def variables():
     error = None
+    predictor = ''
+    outcome = ''
+    duration = ''
+
+    if current_user.predictor:
+        predictor = current_user.predictor.name
+        outcome = current_user.outcome.name
+        duration = current_user.interval.duration
+
     data = {
-        'predictor': current_user.predictor.name,
-        'outcome': current_user.outcome.name,
-        'duration': current_user.interval.duration
+        'predictor': predictor,
+        'outcome': outcome,
+        'duration': duration
     }
 
     form = VariablesForm(data=data)
