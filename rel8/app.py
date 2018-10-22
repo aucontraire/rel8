@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """rel8 Flask app"""
 import binascii
+import csv
 import datetime
 from dateutil import relativedelta
 from flask import abort, flash, Flask, jsonify, render_template
-from flask import redirect, request, session, url_for
+from flask import redirect, request, session, stream_with_context, url_for
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from io import StringIO
 import models
 from models.interval import Interval
 from models.outcome import Outcome
@@ -18,6 +20,8 @@ import os
 import phonenumbers
 from rel8.forms import RegistrationForm, PasswordForm, LoginForm, VariablesForm
 from twilio.twiml.messaging_response import MessagingResponse
+from werkzeug.datastructures import Headers
+from werkzeug import wrappers
 
 
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
@@ -139,6 +143,43 @@ def dashboard():
             responses.append((session.responses[0], session.responses[1], diff.hours))
 
     return render_template('dashboard.html', error=error, user=current_user, responses=responses)
+
+
+@app.route('/csv')
+def csv_download():
+    def generate():
+        data = StringIO()
+        w = csv.writer(data)
+
+        # write header
+        w.writerow(('predictor dt', 'predictor', 'outcome dt', 'outcome', 'difference (min)'))
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+        # write each log item
+        current_user.sessions.sort(key=lambda session: session.updated_at, reverse=False)
+        for session in current_user.sessions:
+            session.responses.sort(key=lambda response: response.updated_at, reverse=False)
+            if len(session.responses) == 1:
+                w.writerow((session.responses[0].human_updated_at(), session.responses[0].message, '', '', ''))
+            elif len(session.responses) == 2:
+                diff = relativedelta.relativedelta(session.responses[1].updated_at, session.responses[0].updated_at)
+                w.writerow((session.responses[0].human_updated_at(), session.responses[0].message, session.responses[1].human_updated_at(), session.responses[1].message, diff.minutes))
+
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+
+    # add a filename
+    headers = Headers()
+    headers.set('Content-Disposition', 'attachment', filename='log.csv')
+
+    # stream the response as the data is generated
+    return wrappers.Response(
+        stream_with_context(generate()),
+        mimetype='text/csv', headers=headers
+    )
 
 
 @app.route('/password', methods=['GET', 'POST'])
