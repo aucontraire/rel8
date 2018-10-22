@@ -140,7 +140,7 @@ def dashboard():
             responses.append((session.responses[0], ))
         elif len(session.responses) == 2:
             diff = relativedelta.relativedelta(session.responses[1].updated_at, session.responses[0].updated_at)
-            responses.append((session.responses[0], session.responses[1], diff.hours))
+            responses.append((session.responses[0], session.responses[1], diff.minutes))
 
     return render_template('dashboard.html', error=error, user=current_user, responses=responses)
 
