@@ -5,3 +5,9 @@ h1 {
 .btn {
     margin-bottom: 10px;
 }
+
+#download {
+    margin-right: 10px;
+    margin-left: auto;
+    margin-top: 15px
+}
