@@ -60,6 +60,17 @@
         {% else %}
             {{ form.access_code(class="form-control", id="access-code") }}
         {% endif %}
+        {{ form.timezone.label(class="form-control-label") }}
+        {% if form.timezone.errors %}
+            {{ form.timezone(class="form-control form-control-lg is-invalid", id="timezone") }}
+            <div class="invalid-feedback">
+                {% for error in form.timezone.errors %}
+                    <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ form.timezone(class="form-control", id="timezone") }}
+        {% endif %}
         {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
     </form>
 {% endblock content %}

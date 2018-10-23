@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, PasswordField, StringField, SubmitField
+from wtforms import IntegerField, PasswordField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, Length, NumberRange
 
 
@@ -13,6 +13,13 @@ class RegistrationForm(FlaskForm):
         DataRequired(), Length(min=8, max=20)])
     confirm_password = PasswordField('Confirm Password', validators=[
         DataRequired(), Length(min=8, max=20), EqualTo('password')])
+    timezone = SelectField('Timezone', validators=[DataRequired()], choices=[
+        ('US/Central', 'Central'),
+        ('US/Eastern', 'Eastern'),
+        ('US/Mountain', 'Mountain'),
+        ('US/Pacific', 'Pacific')
+        ]
+    )
     submit = SubmitField('Register')
 
 
