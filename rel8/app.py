@@ -21,6 +21,7 @@ import phonenumbers
 import pytz
 from pytz import timezone
 from rel8.forms import RegistrationForm, PasswordForm, LoginForm, VariablesForm
+from rel8.utils import get_local_dt
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.datastructures import Headers
 from werkzeug import wrappers
@@ -129,17 +130,6 @@ def logout():
     session.pop('user-id')
     logout_user()
     return redirect(url_for('index'))
-
-
-def get_local_dt(dt, human=False, format='%b %-d, %Y, %-I:%M %p'):
-    tz = timezone('US/Pacific')
-    utc = timezone('UTC')
-    dt = utc.localize(dt, is_dst=None).astimezone(pytz.utc)
-    local_dt = dt.astimezone(tz)
-
-    if human:
-        return local_dt.strftime(format)
-    return local_dt
 
 
 @app.route('/dashboard', methods=['GET'])

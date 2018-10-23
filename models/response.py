@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Response module"""
 from datetime import datetime
+from flask_login import current_user
 from models.base_model import Base, BaseModel
+from rel8.utils import get_local_dt
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, JSON, String
 from sqlalchemy.orm import relationship
 
@@ -25,7 +27,7 @@ class Response(BaseModel, Base):
     error = Column(Boolean, default=False)
 
     def human_created_at(self):
-        return self.created_at.strftime('%b %-d, %Y, %-I:%M %p')
+        return get_local_dt(self.created_at, human=True)
 
     def human_updated_at(self):
-        return self.updated_at.strftime('%b %-d, %Y, %-I:%M %p')
+        return get_local_dt(self.updated_at, human=True)
