@@ -82,6 +82,7 @@ def register():
         if user:
             if user.access_code == form.access_code.data:
                 user.password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+                user.timezone = form.timezone.data
                 user.save()
                 return redirect(url_for('login'))
             else:

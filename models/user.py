@@ -22,6 +22,7 @@ class User(UserMixin, BaseModel, Base):
     access_code = Column(String(60), nullable=False)
     phone_number = Column(String(60), nullable=False)
     password = Column(String(128), nullable=True)
+    timezone = Column(String(60), nullable=True)
     interval = relationship('Interval', uselist=False, back_populates='user')
     predictor = relationship('Predictor', uselist=False, back_populates='user')
     outcome = relationship('Outcome', uselist=False, back_populates='user')
