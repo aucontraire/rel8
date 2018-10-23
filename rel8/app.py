@@ -160,6 +160,9 @@ def dashboard():
 
 @app.route('/csv')
 def csv_download():
+    now = datetime.datetime.now()
+    filename = "{}.csv".format(get_local_dt(now, human=True, format='%Y-%m-%d_%H.%M.%S'))
+
     def generate():
         data = StringIO()
         writer = csv.writer(data)
@@ -199,7 +202,7 @@ def csv_download():
             data.truncate(0)
 
     headers = Headers()
-    headers.set('Content-Disposition', 'attachment', filename='log.csv')
+    headers.set('Content-Disposition', 'attachment', filename=filename)
 
     return wrappers.Response(
         stream_with_context(generate()),
