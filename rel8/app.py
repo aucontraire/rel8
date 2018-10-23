@@ -18,6 +18,8 @@ from models.session import Session
 from models.user import User
 import os
 import phonenumbers
+import pytz
+from pytz import timezone
 from rel8.forms import RegistrationForm, PasswordForm, LoginForm, VariablesForm
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.datastructures import Headers
@@ -128,6 +130,17 @@ def logout():
     return redirect(url_for('index'))
 
 
+def get_local_dt(dt, human=False, format='%b %-d, %Y, %-I:%M %p'):
+    tz = timezone('US/Pacific')
+    utc = timezone('UTC')
+    dt = utc.localize(dt, is_dst=None).astimezone(pytz.utc)
+    local_dt = dt.astimezone(tz)
+
+    if human:
+        return local_dt.strftime(format)
+    return local_dt
+
+
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
@@ -160,10 +173,26 @@ def csv_download():
         for session in current_user.sessions:
             session.responses.sort(key=lambda response: response.updated_at, reverse=False)
             if len(session.responses) == 1:
-                writer.writerow((session.responses[0].updated_at, session.responses[0].message, '', '', ''))
+                writer.writerow(
+                    (
+                        get_local_dt(session.responses[0].updated_at),
+                        session.responses[0].message,
+                        '',
+                        '',
+                        ''
+                    )
+                )
             elif len(session.responses) == 2:
                 diff = relativedelta.relativedelta(session.responses[1].updated_at, session.responses[0].updated_at)
-                writer.writerow((session.responses[0].updated_at, session.responses[0].message, session.responses[1].updated_at, session.responses[1].message, diff.minutes))
+                writer.writerow(
+                    (
+                        get_local_dt(session.responses[0].updated_at),
+                        session.responses[0].message,
+                        get_local_dt(session.responses[1].updated_at),
+                        session.responses[1].message,
+                        diff.minutes
+                    )
+                )
 
             yield data.getvalue()
             data.seek(0)
