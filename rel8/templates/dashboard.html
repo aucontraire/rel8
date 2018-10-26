@@ -1,5 +1,12 @@
 {% extends "base_setup.html" %}
-{% block scripts %}{% endblock scripts %}
+{% block scripts %}
+    <script>
+        $(document).ready(function (){
+            $('.navbar').find('.active').removeClass('active');
+            $('#dashboard-nav').addClass('active');
+        });
+    </script>
+{% endblock scripts %}
 {% block content %}
     <div class="container">
         <div class="row">
