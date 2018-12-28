@@ -14,6 +14,7 @@ This project allows you to test hypotheses about the relationship of two variabl
 * __language:__ Python 3.4.3
 * __application server:__ Flask 1.0, Jinja2 2.9.6
 * __database:__ MySQL Ver 14.14 Distrib 5.7.18
+* __ORM:__ SQLAlchemy 1.2.10
 
 <img src="https://github.com/jarehec/AirBnB_clone_v3/blob/master/dev/hbnb_step5.png" />
 
