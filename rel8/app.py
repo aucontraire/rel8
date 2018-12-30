@@ -54,10 +54,11 @@ def get_session():
     counter = session.get('counter', 0)
     counter += 1
     session['counter'] = counter
+    consent = session.get('consent', False)
     consent_requested = session.get('consent_requested', False)
     name_requested = session.get('name_requested', False)
 
-    return session, counter, consent_requested, name_requested
+    return session, counter, consent, consent_requested, name_requested
 
 
 def standardize_phone(phone_number):
@@ -293,7 +294,7 @@ def new_session(user, message):
 def sms():
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     response_body = None
-    session, counter, consent_requested, name_requested = get_session()
+    session, counter, consent, consent_requested, name_requested = get_session()
     phone_number = request.form['From']
     message = request.form['Body']
     user = find_user_by_phone(phone_number)
@@ -331,7 +332,7 @@ def sms():
                         models.storage.new(sms_response)
                         user.sessions[0].complete = True
                         models.storage.save()
-    elif consent_requested is True and name_requested is True:
+    elif consent is True and consent_requested is True and name_requested is True:
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
         user = User()
@@ -345,7 +346,7 @@ def sms():
     elif consent_requested is True and name_requested is False:
         session['name_requested'] = True
         if message.strip().lower() == 'yes':
-            session['consent_requested'] = True
+            session['consent'] = True
             response_body = "What's your name?"
         elif message.strip().lower() == 'no':
             response_body = "Sorry to hear that. Bye."
