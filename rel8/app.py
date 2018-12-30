@@ -270,7 +270,7 @@ def session_expired(created_at, interval):
     return now > created_at + delta
 
 
-def new_session(user, message, response):
+def new_session(user, message):
     sms_session = Session(
         user_id=user.id,
         interval_id=user.interval.id
@@ -278,18 +278,15 @@ def new_session(user, message, response):
     models.storage.new(sms_session)
     models.storage.save()
 
-    if message.strip().lower() == user.predictor.name:
-        sms_response = Response(
-            session_id=sms_session.id,
-            predictor_id=user.predictor.id,
-            user_id=user.id,
-            message=message,
-            twilio_json="{}"
-        )
-        models.storage.new(sms_response)
-        models.storage.save()
-    else:
-        response.message('This should be the predictor.')
+    sms_response = Response(
+        session_id=sms_session.id,
+        predictor_id=user.predictor.id,
+        user_id=user.id,
+        message=message,
+        twilio_json="{}"
+    )
+    models.storage.new(sms_response)
+    models.storage.save()
 
 
 @app.route('/sms', methods=['POST'])
@@ -301,7 +298,7 @@ def sms():
     message = request.form['Body']
     user = find_user_by_phone(phone_number)
     if user:
-        if not user.predictor and not user.outcome:
+        if not user.predictor or not user.outcome:
             response_body = "Hi {}. You need to set up your variables first: {}".format(user.username, SITE_URL)
         elif message.strip().lower() != user.predictor.name and message.strip().lower() != user.outcome.name:
             response_body = 'That does not match your variables. Try again.'
@@ -309,11 +306,11 @@ def sms():
             user.sessions.sort(key=lambda sess: sess.updated_at, reverse=True)
             if message.strip().lower() == user.predictor.name:
                 if len(user.sessions) == 0 or user.sessions[0].complete is True:
-                    new_session(user, message, response)
+                    new_session(user, message)
                 elif user.sessions[0].complete is False:
                     if session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
                         user.sessions[0].complete = True
-                        new_session(user, message, response)
+                        new_session(user, message)
                     else:
                         response_body = 'We were expecting outcome: {}'.format(user.outcome.name)
             elif message.strip().lower() == user.outcome.name:
