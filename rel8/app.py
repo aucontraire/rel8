@@ -54,10 +54,10 @@ def get_session():
     counter = session.get('counter', 0)
     counter += 1
     session['counter'] = counter
-    consent = session.get('consent', False)
-    name_req = session.get('name_req', False)
+    consent_requested = session.get('consent_requested', False)
+    name_requested = session.get('name_requested', False)
 
-    return session, counter, consent, name_req
+    return session, counter, consent_requested, name_requested
 
 
 def standardize_phone(phone_number):
@@ -293,7 +293,7 @@ def new_session(user, message):
 def sms():
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     response_body = None
-    session, counter, consent, name_req = get_session()
+    session, counter, consent_requested, name_requested = get_session()
     phone_number = request.form['From']
     message = request.form['Body']
     user = find_user_by_phone(phone_number)
@@ -331,7 +331,7 @@ def sms():
                         models.storage.new(sms_response)
                         user.sessions[0].complete = True
                         models.storage.save()
-    elif consent is True and name_req is True:
+    elif consent_requested is True and name_requested is True:
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
         user = User()
@@ -342,16 +342,16 @@ def sms():
         models.storage.save()
         session['user-id'] = user.id
         response_body = "Welcome {}! Please go to: {}/register/?access-code={}".format(user.username, SITE_URL, access_code)
-    elif consent is True and name_req is False:
-        session['name_req'] = True
+    elif consent_requested is True and name_requested is False:
+        session['name_requested'] = True
         if message.strip().lower() == 'yes':
-            session['consent'] = True
+            session['consent_requested'] = True
             response_body = "What's your name?"
         elif message.strip().lower() == 'no':
             response_body = "Sorry to hear that. Bye."
     else:
         response_body = "Would you like to enroll in rel8? [Yes, No]"
-        session['consent'] = True
+        session['consent_requested'] = True
 
     message = client.messages.create(
         to=phone_number,
