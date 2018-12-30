@@ -22,13 +22,15 @@ import pytz
 from pytz import timezone
 from rel8.forms import RegistrationForm, PasswordForm, LoginForm, VariablesForm
 from rel8.utils import get_local_dt
-from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
 from werkzeug.datastructures import Headers
 from werkzeug import wrappers
 
 
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -292,20 +294,17 @@ def new_session(user, message, response):
 
 @app.route('/sms', methods=['POST'])
 def sms():
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    response_body = None
     session, counter, consent, name_req = get_session()
-    response = MessagingResponse()
     phone_number = request.form['From']
     message = request.form['Body']
     user = find_user_by_phone(phone_number)
     if user:
         if not user.predictor and not user.outcome:
-            response.message(
-                "Hi {}. You need to set up your variables first: {}".format(
-                    user.username, SITE_URL
-                )
-            )
+            response_body = "Hi {}. You need to set up your variables first: {}".format(user.username, SITE_URL)
         elif message.strip().lower() != user.predictor.name and message.strip().lower() != user.outcome.name:
-            response.message('That does not match your variables. Try again.')
+            response_body = 'That does not match your variables. Try again.'
         else:
             user.sessions.sort(key=lambda sess: sess.updated_at, reverse=True)
             if message.strip().lower() == user.predictor.name:
@@ -316,14 +315,14 @@ def sms():
                         user.sessions[0].complete = True
                         new_session(user, message, response)
                     else:
-                        response.message('We were expecting outcome: {}'.format(user.outcome.name))
+                        response_body = 'We were expecting outcome: {}'.format(user.outcome.name)
             elif message.strip().lower() == user.outcome.name:
                 if len(user.sessions) == 0 or user.sessions[0].complete is True:
-                    response.message('We were expecting predictor: {}'.format(user.predictor.name))
+                    response_body = 'We were expecting predictor: {}'.format(user.predictor.name)
                 elif user.sessions[0].complete is False:
                     if session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
                         user.sessions[0].complete = True
-                        response.message('We were expecting predictor: {}'.format(user.predictor.name))
+                        response_body = 'We were expecting predictor: {}'.format(user.predictor.name)
                     else:
                         sms_response = Response(
                             session_id=user.sessions[0].id,
@@ -345,23 +344,24 @@ def sms():
         models.storage.new(user)
         models.storage.save()
         session['user-id'] = user.id
-        response.message(
-            "Welcome {}! Please go to: {}/register/?access-code={}".format(
-                user.username, SITE_URL, access_code
-            )
-        )
+        response_body = "Welcome {}! Please go to: {}/register/?access-code={}".format(user.username, SITE_URL, access_code)
     elif consent is True and name_req is False:
         session['name_req'] = True
         if message.strip().lower() == 'yes':
             session['consent'] = True
-            response.message("What's your name?")
+            response_body = "What's your name?"
         elif message.strip().lower() == 'no':
-            response.message("Sorry to hear that. Bye.")
+            response_body = "Sorry to hear that. Bye."
     else:
-        response.message("Would you like to enroll in rel8? [Yes, No]")
+        response_body = "Would you like to enroll in rel8? [Yes, No]"
         session['consent'] = True
 
-    return str(response)
+    message = client.messages.create(
+        to=phone_number,
+        from_=TWILIO_PHONE_NUMBER,
+        body=response_body
+    )
+    return str(message)
 
 
 @app.errorhandler(403)
