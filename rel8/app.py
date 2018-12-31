@@ -308,30 +308,28 @@ def sms():
             if message.strip().lower() == user.predictor.name:
                 if len(user.sessions) == 0 or user.sessions[0].complete is True:
                     new_session(user, message)
-                elif user.sessions[0].complete is False:
-                    if session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
-                        user.sessions[0].complete = True
-                        new_session(user, message)
-                    else:
-                        response_body = 'We were expecting outcome: {}'.format(user.outcome.name)
+                elif session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
+                    user.sessions[0].complete = True
+                    new_session(user, message)
+                else:
+                    response_body = 'We were expecting outcome: {}'.format(user.outcome.name)
             elif message.strip().lower() == user.outcome.name:
                 if len(user.sessions) == 0 or user.sessions[0].complete is True:
                     response_body = 'We were expecting predictor: {}'.format(user.predictor.name)
-                elif user.sessions[0].complete is False:
-                    if session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
-                        user.sessions[0].complete = True
-                        response_body = 'We were expecting predictor: {}'.format(user.predictor.name)
-                    else:
-                        sms_response = Response(
-                            session_id=user.sessions[0].id,
-                            outcome_id=user.outcome.id,
-                            user_id=user.id,
-                            message=message,
-                            twilio_json="{}"
-                        )
-                        models.storage.new(sms_response)
-                        user.sessions[0].complete = True
-                        models.storage.save()
+                elif session_expired(user.sessions[0].created_at, user.sessions[0].interval.duration):
+                    user.sessions[0].complete = True
+                    response_body = 'We were expecting predictor: {}'.format(user.predictor.name)
+                else:
+                    sms_response = Response(
+                        session_id=user.sessions[0].id,
+                        outcome_id=user.outcome.id,
+                        user_id=user.id,
+                        message=message,
+                        twilio_json="{}"
+                    )
+                    models.storage.new(sms_response)
+                    user.sessions[0].complete = True
+                    models.storage.save()
     elif consent is True and consent_requested is True and name_requested is True:
         access_code = binascii.hexlify(os.urandom(8)).decode()
         session['access-code'] = access_code
